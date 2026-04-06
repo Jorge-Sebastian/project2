@@ -1,0 +1,5 @@
+Manifest-Version: 0.0.1
+Project-Name: project2
+Source: src/main/rascal
+Require-Libraries: |lib://dsl-project|
+
