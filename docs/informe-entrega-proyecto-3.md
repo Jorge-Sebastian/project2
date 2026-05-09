@@ -43,6 +43,7 @@ El chequeador implementado revisa:
 - que las variables usadas en expresiones y ecuaciones esten declaradas;
 - que los operadores usados en reglas esten declarados;
 - que los elementos referenciados dentro de una estructura `defdata` existan;
+- que los elementos referenciados dentro de una estructura `defdata` correspondan con el tipo declarado de esa estructura;
 - que los literales anotados correspondan con su tipo real y con el tipo declarado de la estructura.
 
 ## Generación de salida

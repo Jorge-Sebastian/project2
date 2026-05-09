@@ -11,6 +11,8 @@ public list[str] check(Program p) {
     set[str] vars = {};
     set[str] operators = {};
     set[str] dataNames = {};
+    list[VarDecl] varDecls = [];
+    list[DataDecl] dataDecls = [];
     list[str] errors = [];
 
     for (comp <- comps) {
@@ -20,8 +22,9 @@ public list[str] check(Program p) {
       if (spaceComp(orderedSpace(child, _)) := comp) {
         spaces += {child};
       }
-      if (dataComp(dataDecl(name, _, _)) := comp) {
+      if (dataComp(dataDecl(name, typ, values)) := comp) {
         dataNames += {name};
+        dataDecls += [dataDecl(name, typ, values)];
       }
       if (operComp(operDef(name, _, _)) := comp) {
         operators += {name};
@@ -30,8 +33,9 @@ public list[str] check(Program p) {
 
     for (comp <- comps) {
       if (variableComp(varBlock(decls)) := comp) {
-        for (varDecl(n, _) <- decls) {
+        for (varDecl(n, typ) <- decls) {
           vars += {n};
+          varDecls += [varDecl(n, typ)];
         }
       }
     }
@@ -47,7 +51,7 @@ public list[str] check(Program p) {
       }
       if (dataComp(dataDecl(dname, typ, values)) := comp) {
         errors += checkTypeNames("estructura <dname>", typ, spaces);
-        errors += checkDataValues(dname, typ, values, vars, dataNames);
+        errors += checkDataValues(dname, typ, values, varDecls, dataDecls);
       }
       if (spaceComp(orderedSpace(child, parent)) := comp) {
         if (parent notin spaces) {
@@ -110,29 +114,54 @@ list[str] checkTypeNames(str context, VType t, set[str] spaces) {
   return errors;
 }
 
-list[str] checkDataValues(str dataName, VType declaredType, list[DataItem] values, set[str] vars, set[str] dataNames) {
+list[str] checkDataValues(str structName, VType declaredType, list[DataItem] values, list[VarDecl] vars, list[DataDecl] dataDecls) {
   list[str] errors = [];
 
   for (item <- values) {
     switch (item) {
-      case dataName(identifier):
-        if (identifier notin vars && identifier notin dataNames) {
-          errors += ["Error: elemento <identifier> usado en estructura <dataName> no existe"];
+      case dataName(identifier): {
+        bool found = false;
+
+        for (varDecl(varName, varType) <- vars) {
+          if (identifier == varName) {
+            found = true;
+            errors += checkNamedElementType(structName, identifier, varType, declaredType);
+          }
         }
+
+        for (dataDecl(dataNameText, dataType, _) <- dataDecls) {
+          if (identifier == dataNameText) {
+            found = true;
+            errors += checkNamedElementType(structName, identifier, dataType, declaredType);
+          }
+        }
+
+        if (found == false) {
+          errors += ["Error: elemento <identifier> usado en estructura <structName> no existe"];
+        }
+      }
       case dataInt(_, typ):
-        errors += checkLiteralType(dataName, "Int", typ, declaredType);
+        errors += checkLiteralType(structName, "Int", typ, declaredType);
       case dataReal(_, typ):
-        errors += checkLiteralType(dataName, "Real", typ, declaredType);
+        errors += checkLiteralType(structName, "Real", typ, declaredType);
       case dataString(_, typ):
-        errors += checkLiteralType(dataName, "String", typ, declaredType);
+        errors += checkLiteralType(structName, "String", typ, declaredType);
       case dataChar(_, typ):
-        errors += checkLiteralType(dataName, "Char", typ, declaredType);
+        errors += checkLiteralType(structName, "Char", typ, declaredType);
       case dataBool(_, typ):
-        errors += checkLiteralType(dataName, "Bool", typ, declaredType);
+        errors += checkLiteralType(structName, "Bool", typ, declaredType);
     }
   }
 
   return errors;
+}
+
+list[str] checkNamedElementType(str structName, str identifier, VType actualType, VType declaredType) {
+  if (sameType(actualType, declaredType)) {
+    return [];
+  }
+
+  return ["Error: elemento <identifier> en estructura <structName> tiene tipo <typeText(actualType)>, pero la estructura declara <typeText(declaredType)>"];
 }
 
 list[str] checkLiteralType(str dataName, str literalType, VType itemType, VType declaredType) {
@@ -146,6 +175,26 @@ list[str] checkLiteralType(str dataName, str literalType, VType itemType, VType 
   }
 
   return errors;
+}
+
+bool sameType(VType left, VType right) {
+  if (simpleType(leftName) := left && simpleType(rightName) := right) {
+    return leftName == rightName;
+  }
+  if (arrowType(leftFrom, leftTo) := left && arrowType(rightFrom, rightTo) := right) {
+    return sameType(leftFrom, rightFrom) && sameType(leftTo, rightTo);
+  }
+
+  return false;
+}
+
+str typeText(VType t) {
+  switch (t) {
+    case simpleType(name):
+      return name;
+    case arrowType(left, right):
+      return "<typeText(left)> -\> <typeText(right)>";
+  }
 }
 
 list[str] collectTypeNames(VType t) {
