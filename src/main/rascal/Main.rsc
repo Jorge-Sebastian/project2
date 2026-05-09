@@ -6,8 +6,12 @@ import IO;
 import Parser;
 import TypeChecker;
 
-void main(list[str] args) {
+public void runDefault() {
   loc file = |project://js-otalorab12-project-verilang/instance/spec1.vl|;
+  runFile(file);
+}
+
+public void runFile(loc file) {
   AST::Program program = loadVerilang(file);
 
   println("VeriLang input: <file>");
@@ -15,4 +19,8 @@ void main(list[str] args) {
   runProgram(program);
   println("--- Type checking ---");
   printCheck(program);
+}
+
+public void main(list[str] args) {
+  runDefault();
 }

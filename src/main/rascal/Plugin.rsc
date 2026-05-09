@@ -20,7 +20,11 @@ set[LanguageService] contribs() = {
   summarizer(verilangSummary)
 };
 
-void main(list[str] args) {
+public void registerVerilang() {
   registerLanguage(verilangLang);
   println("VeriLang registered for .vl");
+}
+
+public void main(list[str] args) {
+  registerVerilang();
 }

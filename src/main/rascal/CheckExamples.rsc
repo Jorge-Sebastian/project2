@@ -5,7 +5,7 @@ import IO;
 import Parser;
 import TypeChecker;
 
-void main(list[str] args) {
+public void runExamples() {
   for (file <- [
       |project://js-otalorab12-project-verilang/instance/spec1.vl|,
       |project://js-otalorab12-project-verilang/instance/spec_typed_values.vl|,
@@ -15,4 +15,8 @@ void main(list[str] args) {
     AST::Program program = loadVerilang(file);
     printCheck(program);
   }
+}
+
+public void main(list[str] args) {
+  runExamples();
 }

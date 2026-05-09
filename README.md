@@ -18,17 +18,46 @@ El proyecto define la sintaxis concreta, un AST propio, parser, conversion de pa
 - `instance/`: programas VeriLang de prueba en formato `.vl`.
 - `docs/`: informe de entrega en Markdown y Word.
 
-## Ejecucion
+## Ejecucion recomendada en Rascal
 
-Desde la raiz del proyecto:
+En VS Code con la extension de Rascal:
+
+1. Abrir `src/main/rascal/Main.rsc`.
+2. Ejecutar la accion `Run in new Rascal terminal` sobre la funcion `runDefault`.
+3. Revisar en consola la salida generada para `instance/spec1.vl` y el resultado del chequeo de tipos.
+
+Para ejecutar todos los ejemplos, abrir `src/main/rascal/CheckExamples.rsc` y correr `runExamples`.
+
+Tambien se puede hacer desde una terminal de Rascal. Para ejecutar el ejemplo principal:
+
+```rascal
+import Main;
+runDefault();
+```
+
+Para ejecutar cualquier archivo `.vl` del proyecto:
+
+```rascal
+import Main;
+runFile(|project://js-otalorab12-project-verilang/instance/spec1.vl|);
+```
+
+Para validar todos los ejemplos incluidos:
+
+```rascal
+import CheckExamples;
+runExamples();
+```
+
+## Ejecucion alternativa desde consola del sistema
+
+Desde la raiz del proyecto tambien se puede ejecutar:
 
 ```powershell
 java -jar "$env:USERPROFILE\.m2\repository\org\rascalmpl\rascal\0.42.1\rascal-0.42.1.jar" Main
 ```
 
-Este comando lee `instance/spec1.vl`, construye el AST, genera una salida legible del programa y ejecuta las validaciones.
-
-Para revisar todos los ejemplos:
+Para revisar todos los ejemplos desde consola del sistema:
 
 ```powershell
 java -jar "$env:USERPROFILE\.m2\repository\org\rascalmpl\rascal\0.42.1\rascal-0.42.1.jar" CheckExamples
@@ -42,7 +71,7 @@ java -jar "$env:USERPROFILE\.m2\repository\org\rascalmpl\rascal\0.42.1\rascal-0.
 
 ## Plugin
 
-En VS Code con Rascal se puede ejecutar `Plugin.main` para registrar el lenguaje `.vl`.
+En VS Code con Rascal se puede ejecutar `Plugin.registerVerilang` para registrar el lenguaje `.vl`.
 
 Si se ejecuta el plugin desde consola, se necesita incluir `rascal-lsp` en el classpath. En ese escenario puede aparecer el warning `Could not register language: no connection`, que es esperado porque no hay conexion activa con el editor.
 

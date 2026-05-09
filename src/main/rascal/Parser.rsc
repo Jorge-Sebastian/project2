@@ -17,7 +17,7 @@ public AST::Program loadVerilang(loc file) {
   return toProgram(parseVerilang(file));
 }
 
-void main(list[str] args) {
+public void parseExample() {
   loc file = |project://js-otalorab12-project-verilang/instance/spec1.vl|;
   Tree tree = parseVerilang(file);
   AST::Program program = toProgram(tree);
@@ -27,4 +27,8 @@ void main(list[str] args) {
   runProgram(program);
   println("--- Type checking ---");
   printCheck(program);
+}
+
+public void main(list[str] args) {
+  parseExample();
 }

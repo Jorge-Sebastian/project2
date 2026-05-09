@@ -1,34 +1,38 @@
 # Informe de entrega - Proyecto 3 PLE
 
+**Autor:** Jorge Sebastián Otálora Bernal
+
+**Código:** 202312287
+
 ## Objetivo
 
-El objetivo de esta entrega fue continuar la definicion de VeriLang implementada en Rascal y convertirla en un lenguaje ejecutable con parser, AST, generacion de salida, anotaciones de tipos y validaciones semanticas.
+El objetivo de esta entrega fue continuar la definición de VeriLang implementada en Rascal y convertirla en un lenguaje ejecutable con parser, AST, generación de salida, anotaciones de tipos y validaciones semánticas.
 
 ## Alcance implementado
 
 Se implementaron los siguientes elementos:
 
-- gramatica concreta de VeriLang en `Syntax.rsc`;
+- gramática concreta de VeriLang en `Syntax.rsc`;
 - AST propio en `AST.rsc`;
 - parser de archivos `.vl` en `Parser.rsc`;
-- conversion del parse tree al AST en `ToAST.rsc`;
+- conversión del parse tree al AST en `ToAST.rsc`;
 - generador de salida en consola desde el AST en `Generator.rsc`;
-- validaciones semanticas y de tipos en `TypeChecker.rsc`;
-- integracion inicial con TypePal en `Checker.rsc`;
+- validaciones semánticas y de tipos en `TypeChecker.rsc`;
+- integración inicial con TypePal en `Checker.rsc`;
 - plugin para registrar archivos `.vl` en `Plugin.rsc`;
 - ejemplos de entrada en la carpeta `instance/`.
 
 ## Cambios frente a iteraciones anteriores
 
-La gramatica fue ajustada para que cargue correctamente en Rascal 0.42.1 y para corregir problemas detectados en la base anterior:
+La gramática fue ajustada para que cargue correctamente en Rascal 0.42.1 y para corregir problemas detectados en la base anterior:
 
 - se uso un nombre de proyecto valido para Rascal: `js-otalorab12-project-verilang`;
-- se cambio el simbolo inicial a `Program`;
+- se cambió el símbolo inicial a `Program`;
 - se evito usar `Module` como nombre de dato del AST para no chocar con el concepto de modulo de Rascal;
-- se separo el parser, la conversion a AST, el generador y el chequeador en modulos independientes;
-- se estandarizo la extension de entrada como `.vl`;
-- se agrego soporte para `defdata`, usado para estructuras de datos con tipo declarado por el usuario;
-- se agrego soporte para valores anotados como `1:Int`, `true:Bool`, `'a':Char`, `"txt":String` y `1.5:Real`.
+- se separó el parser, la conversión a AST, el generador y el chequeador en módulos independientes;
+- se estandarizó la extensión de entrada como `.vl`;
+- se agregó soporte para `defdata`, usado para estructuras de datos con tipo declarado por el usuario;
+- se agregó soporte para valores anotados como `1:Int`, `true:Bool`, `'a':Char`, `"txt":String` y `1.5:Real`.
 
 ## Validaciones
 
@@ -41,7 +45,7 @@ El chequeador implementado revisa:
 - que los elementos referenciados dentro de una estructura `defdata` existan;
 - que los literales anotados correspondan con su tipo real y con el tipo declarado de la estructura.
 
-## Generacion de salida
+## Generación de salida
 
 El archivo `Main.rsc` carga `instance/spec1.vl`, construye el AST, genera una representacion textual del programa y muestra el resultado en consola.
 
@@ -62,17 +66,46 @@ Se usaron como guia los siguientes materiales:
 - proyecto de referencia compartido por las companeras: se uso como guia de organizacion de modulos Rascal (`Syntax`, `AST`, `Parser`, `ToAST`, `Generator`, `TypeChecker`) y como punto de comparacion para pruebas.
 - repositorios de ejemplo compartidos por el profesor: se revisaron para confirmar la organizacion de ejemplos y ejecucion, sin copiar funcionalidades ajenas al alcance de VeriLang.
 
-La solucion entregada no es una copia directa de esas fuentes. Se realizaron ajustes propios en la gramatica, el AST, el conversor a AST, el generador, las validaciones, los ejemplos y la documentacion. En particular, se corrigieron nombres, rutas de proyecto, extension `.vl`, manejo de estructuras `defdata`, valores anotados y reglas de validacion.
+La solución entregada no es una copia directa de esas fuentes. Se realizaron ajustes propios en la gramática, el AST, el conversor a AST, el generador, las validaciones, los ejemplos y la documentación. En particular, se corrigieron nombres, rutas de proyecto, extensión `.vl`, manejo de estructuras `defdata`, valores anotados y reglas de validación.
 
-## Como ejecutar
+## Cómo ejecutar
 
-Desde la raiz del proyecto:
+La forma recomendada es ejecutar el proyecto desde VS Code con la extension de Rascal:
+
+1. abrir `src/main/rascal/Main.rsc`;
+2. ejecutar la accion `Run in new Rascal terminal` sobre la funcion `runDefault`;
+3. revisar en consola la salida generada para `instance/spec1.vl` y el resultado del chequeo de tipos.
+
+Para correr todos los ejemplos, abrir `src/main/rascal/CheckExamples.rsc` y ejecutar `runExamples`.
+
+Tambien puede hacerse desde una terminal de Rascal. Para ejecutar el ejemplo principal:
+
+```rascal
+import Main;
+runDefault();
+```
+
+Para ejecutar cualquier archivo `.vl` del proyecto:
+
+```rascal
+import Main;
+runFile(|project://js-otalorab12-project-verilang/instance/spec1.vl|);
+```
+
+Para validar todos los ejemplos incluidos:
+
+```rascal
+import CheckExamples;
+runExamples();
+```
+
+Como alternativa, desde la raíz del proyecto se puede ejecutar con la consola del sistema:
 
 ```powershell
 java -jar "$env:USERPROFILE\.m2\repository\org\rascalmpl\rascal\0.42.1\rascal-0.42.1.jar" Main
 ```
 
-Para correr los ejemplos de validacion:
+Para correr los ejemplos de validación desde la consola del sistema:
 
 ```powershell
 java -jar "$env:USERPROFILE\.m2\repository\org\rascalmpl\rascal\0.42.1\rascal-0.42.1.jar" CheckExamples
