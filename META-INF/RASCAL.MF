@@ -1,5 +1,4 @@
 Manifest-Version: 0.0.1
-Project-Name: project2
+Project-Name: js-otalorab12-project-verilang
 Source: src/main/rascal
-Require-Libraries: |lib://dsl-project|
-
+Require-Libraries: |lib://dsl-project|,|lib://typepal|

@@ -1,0 +1,7 @@
+defmodule TypedValues
+defdata ints : Int = [1:Int, 2:Int, 3:Int] end
+defdata bools : Bool = [true:Bool, false:Bool] end
+defdata chars : Char = ['a':Char, 'b':Char] end
+defdata strings : String = ["alpha":String, "beta":String] end
+defdata reals : Real = [1.5:Real, 2.0:Real] end
+end

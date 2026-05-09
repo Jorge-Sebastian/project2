@@ -1,26 +1,26 @@
 module Plugin
 
 import IO;
+import Checker;
 import ParseTree;
-import util::Reflective;
+import Relation;
+import Syntax;
 import util::IDEServices;
 import util::LanguageServer;
-import Relation;
+import util::Reflective;
 
-import Syntax;
+PathConfig pcfg = getProjectPathConfig(|project://js-otalorab12-project-verilang|);
 
-PathConfig pcfg = getProjectPathConfig(|project://project2|);
-
-// Nombre del lenguaje y extensión
-Language verilangLang = language(pcfg, "Verilang", "vlg", "Plugin", "contribs");
+Language verilangLang = language(pcfg, "VeriLang", "vl", "Plugin", "contribs");
 
 set[LanguageService] contribs() = {
-  parser(start[Module] (str program, loc src) {
-    return parse(#start[Module], program, src);
-  })
+  parser(start[Program] (str program, loc src) {
+    return parse(#start[Program], program, src);
+  }),
+  summarizer(verilangSummary)
 };
 
-void main() {
+void main(list[str] args) {
   registerLanguage(verilangLang);
-  println("Verilang registered for .vlg");
+  println("VeriLang registered for .vl");
 }

@@ -1,0 +1,7 @@
+defmodule BrokenExample
+defspace Element end
+defoperator isIn : MissingType -> Element -> Bool end
+defvar x : Element end
+defdata badValues : Bool = [x, 1:Int, z] end
+defexpression z in x end
+end

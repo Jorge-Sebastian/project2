@@ -1,76 +1,118 @@
 module AST
 
-data Module = module(str name, list[UsingDecl] uses, list[Declaration] decls);
-
-data UsingDecl = usingDecl(str moduleName);
-
-data Declaration
-  = spaceDecl(SpaceDecl d)
-  | operatorDecl(OperatorDecl d)
-  | varDecl(VarDecl d)
-  | ruleDecl(RuleDecl d)
-  | exprDecl(ExpressionDecl d)
-  | attrDecl(AttributeDecl d)
-  | relDecl(RelationDecl d)
+data AttrValue
+  = attrName(str text)
+  | attrInt(int number)
+  | attrReal(real decimal)
+  | attrBool(bool boolValue)
+  | attrEmpty()
   ;
 
-data SpaceDecl = spaceDecl(str name, list[str] super); // [] o [X]
+data AttrItem
+  = flagAttr(str attrNameText)
+  | valuedAttr(str attrKey, AttrValue attrVal)
+  ;
 
-data OperatorDecl = operatorDecl(str op, Type type);
-data Type = funType(list[str] chain); // ej: ["Int","Double","Double"]
+data VType
+  = simpleType(str typeName)
+  | arrowType(VType fromType, VType toType)
+  ;
 
-data AttributeDecl = attrDecl(AttributeList attrs);
-data AttributeList = attrs(list[AttributeItem] items);
-data AttributeItem = attrItem(str name, list[AttributeValue] val); // [] o [v]
-data AttributeValue = attrValId(str v);
+data RelOp
+  = inOp()
+  | lessEqOp()
+  | greaterEqOp()
+  | notEqualOp()
+  | lessOp()
+  | greaterOp()
+  | equalOp()
+  ;
 
-data VarDecl = varDecl(list[VarItem] items);
-data VarItem = varItem(str name, str domain);
+data MaybeSpace
+  = noSpace()
+  | inSpace(str spaceName)
+  ;
 
-data RuleDecl = ruleDecl(OperatorApp lhs, OperatorApp rhs);
-data OperatorApp = opApp(str op, list[Atom] args);
+data Term
+  = appTerm(str funcName, list[Term] arguments)
+  | nameTerm(str identifier)
+  | intTerm(int intValue)
+  | realTerm(real realValue)
+  | stringTerm(str stringValue)
+  | charTerm(str charValue)
+  | boolTerm(bool boolValue)
+  ;
 
-data Atom
-  = atomId(str name)
-  | atomInt(int v)
-  | atomFloat(real v)
-  | atomChar(str v)
-  | atomApp(OperatorApp app);
+data LogicExpr
+  = forallExpr(str variable, MaybeSpace domain, LogicExpr bodyExpr)
+  | existsExpr(str variable, MaybeSpace domain, LogicExpr bodyExpr)
+  | equivExpr(list[LogicExpr] expressions)
+  | impliesExpr(list[LogicExpr] expressions)
+  | orExpr(list[LogicExpr] expressions)
+  | andExpr(list[LogicExpr] expressions)
+  | negExpr(LogicExpr innerExpr)
+  | relationExpr(Term leftTerm, RelOp operator, Term rightTerm)
+  | termExpr(Term singleTerm)
+  | groupedExpr(LogicExpr grouped)
+  ;
 
-data ExpressionDecl = exprDecl(Expression exp, list[AttributeList] attrs);
+data SpaceDecl
+  = simpleSpace(str spaceName)
+  | orderedSpace(str childSpace, str parentSpace)
+  ;
 
-data Expression = impl(ImplicationExpr e);
+data OperDef
+  = operDef(str operName, VType operType, list[AttrItem] attributes)
+  ;
 
-data ImplicationExpr = implExpr(EquivalenceExpr left, list[EquivalenceExpr] rest);
-data EquivalenceExpr = equivExpr(LogicalOrExpr left, list[LogicalOrExpr] rest);
-data LogicalOrExpr = orExpr(LogicalAndExpr left, list[LogicalAndExpr] rest);
-data LogicalAndExpr = andExpr(EqualityExpr left, list[EqualityExpr] rest);
+data VarDecl
+  = varDecl(str varName, VType varType)
+  ;
 
-data EqualityExpr = eqExpr(RelationalExpr left, list[RelPair] rest);
-data RelPair = relPair(RelOp op, RelationalExpr rhs);
+data VarBlock
+  = varBlock(list[VarDecl] declarations)
+  ;
 
-data RelationalExpr = relExpr(AdditiveExpr expr);
-data RelOp = lt() | gt() | le() | ge() | ne() | inOp();
+data RuleDecl
+  = ruleDecl(Term leftSide, Term rightSide)
+  ;
 
-data AdditiveExpr = addExpr(MultiplicativeExpr left, list[AddPair] rest);
-data AddPair = addPair(str op, MultiplicativeExpr rhs);
+data ExprDecl
+  = exprDecl(LogicExpr expression, list[AttrItem] attributes)
+  ;
 
-data MultiplicativeExpr = mulExpr(UnaryExpr left, list[MulPair] rest);
-data MulPair = mulPair(str op, UnaryExpr rhs);
+data EquationDecl
+  = equationDecl(LogicExpr leftExpr, LogicExpr rightExpr)
+  ;
 
-data UnaryExpr = negExpr(str op, UnaryExpr arg) | primExpr(PrimaryExpr p);
+data DataItem
+  = dataName(str identifier)
+  | dataInt(int intValue, VType declaredType)
+  | dataReal(real realValue, VType declaredType)
+  | dataString(str stringValue, VType declaredType)
+  | dataChar(str charValue, VType declaredType)
+  | dataBool(bool boolValue, VType declaredType)
+  ;
 
-data PrimaryExpr
-  = quant(QuantifiedExpr q)
-  | app(OperatorApp app)
-  | id(str name)
-  | intLit(int v)
-  | floatLit(real v)
-  | charLit(str v)
-  | par(Expression e);
+data DataDecl
+  = dataDecl(str dataName, VType declaredType, list[DataItem] values)
+  ;
 
-data QuantifiedExpr = quantExpr(Quantifier q, str var, str domain, Expression body);
-data Quantifier = all() | ex();
+data Component
+  = spaceComp(SpaceDecl spaceDecl)
+  | operComp(OperDef operDef)
+  | variableComp(VarBlock varBlock)
+  | ruleComp(RuleDecl ruleDecl)
+  | exprComp(ExprDecl exprDecl)
+  | equationComp(EquationDecl equationDecl)
+  | dataComp(DataDecl dataDecl)
+  | attrComp(list[AttrItem] attributes)
+  ;
 
-// Relación declarada con defer
-data RelationDecl = relDecl(str name, Type type);
+data VModule
+  = vModule(str moduleName, list[str] usingNames, list[Component] componentList)
+  ;
+
+data Program
+  = prog(VModule mainModule)
+  ;

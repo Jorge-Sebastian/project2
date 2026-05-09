@@ -1,209 +1,250 @@
 module Syntax
 
-// Layout: NO consumimos '\n' para poder exigir fin de línea cuando toca (using)
-layout Layout = (WS | Comment)* !>> [\ \t\r#];
-lexical WS = [\ \t\r]+;
-lexical Comment = @category="Comment" "#" ![\n]* $;
+// VeriLang keeps line breaks between top-level components. Spaces and tabs are layout.
+layout Layout = [\ \t]*;
+lexical NL = "\r\n" | "\n";
 
-// Newline explícito
-lexical NL = [\n]+;
-
-// Keywords (incluye defer, te lo habían marcado como faltante en P1)
-keyword Reserved
-  = "defmodule" | "using" | "defspace" | "defoperator" | "defvar" | "defrule"
-  | "defexpression" | "end"
-  | "forall" | "exists"
-  | "and" | "or" | "neg" | "in"
-  | "defer"
+start syntax Program
+  = program: Module NL*
   ;
 
-// Identificadores
-lexical ID = ([a-zA-Z][a-zA-Z0-9\-]* !>> [a-zA-Z0-9\-]) \ Reserved;
-
-// Literales básicos
-lexical INT = [0-9]+;
-lexical FLOAT = [0-9]+ "." [0-9]+;
-lexical CHAR = "'" !["'\n"] "'";
-
-// Start: un archivo es un módulo
-start syntax Module
-  = module:
-    'defmodule' ID name NL
-    UsingDecl* uses
-    Declaration* decls
-    'end' NL?
+syntax Module
+  = verilangModule:
+    'defmodule' Nombre name NL
+    UsingList uses
+    ComponentSection components
+    'end'
   ;
 
-// using exige fin de línea (feedback P1)
-syntax UsingDecl
-  = usingDecl:
-    'using' ID moduleName NL
+syntax UsingList
+  = usingList: (Using NL)* imports
   ;
 
-// Declaraciones: incluye attrs y relations como “cosas sueltas” (feedback P1)
-syntax Declaration
-  = spaceDecl: SpaceDecl
-  | operatorDecl: OperatorDecl
-  | varDecl: VarDecl
-  | ruleDecl: RuleDecl
-  | exprDecl: ExpressionDecl
-  | attrDecl: AttributeDecl
-  | relDecl: RelationDecl
+syntax Using
+  = using: 'using' Nombre moduleName
   ;
 
-// Spaces
-syntax SpaceDecl
-  = spaceDecl:
-    'defspace' ID name ('<' ID super)? 'end' NL?
+syntax ComponentSection
+  = componentSection: (Component NL)* components
   ;
 
-// Operators (sin AttributeList, porque “no deberían poder tener atributos”)
-syntax OperatorDecl
-  = operatorDecl:
-    'defoperator' ID op ':' Type type 'end' NL?
+syntax Component
+  = spaceComponent: SpaceComponent
+  | operatorComponent: OperatorComponent
+  | variableComponent: VariableComponent
+  | ruleComponent: RuleComponent
+  | expressionComponent: ExpressionComponent
+  | equationComponent: EquationComponent
+  | dataComponent: DataComponent
+  | attributeComponent: Attribute
   ;
 
-// Curry types: A -> B -> C ...
+syntax SpaceComponent
+  = spaceSimple: 'defspace' Nombre name 'end'
+  | spaceOrdered: 'defspace' Nombre child Less Nombre parent 'end'
+  ;
+
+syntax OperatorComponent
+  = opDef: 'defoperator' Nombre name ':' Type operatorType 'end'
+  | opDefAttr: 'defoperator' Nombre name ':' Type operatorType Attribute attrs 'end'
+  ;
+
 syntax Type
-  = funType:
-    ID t1 ('->' ID)+ more
+  = simpleType: Nombre name
+  | arrowType: Nombre from Arrow Type to
   ;
 
-// Attributes como declaración aparte (pueden aparecer “solos”)
-syntax AttributeDecl
-  = attrDecl:
-    AttributeList attrs NL?
+syntax VariableComponent
+  = varComp: 'defvar' VarDeclList declarations 'end'
   ;
 
-syntax AttributeList
-  = attrs:
-    '[' AttributeItem+ items ']'
+syntax VarDeclList
+  = oneVarDecl: VarDecl declaration
+  | manyVarDecls: VarDecl declaration ',' VarDeclList rest
+  ;
+
+syntax VarDecl
+  = varDecl: Nombre name ':' Type declaredType
+  ;
+
+syntax RuleComponent
+  = ruleDef: 'defrule' Term left Arrow Term right 'end'
+  ;
+
+syntax Application
+  = application: '(' Nombre name Argument+ arguments ')'
+  ;
+
+syntax Argument
+  = argApplication: Application
+  | argName: Nombre
+  | argTypedValue: TypedValue
+  | argInt: IntLiteral
+  | argFloat: FloatLiteral
+  | argString: StringLiteral
+  | argChar: CharLiteral
+  | argBool: BoolLiteral
+  ;
+
+syntax ExpressionComponent
+  = exprNoAttr: 'defexpression' LogicalExpression expression 'end'
+  | exprAttr: 'defexpression' LogicalExpression expression Attribute attrs 'end'
+  ;
+
+syntax EquationComponent
+  = equationDef: 'defequation' LogicalExpression left Equal LogicalExpression right 'end'
+  ;
+
+syntax DataComponent
+  = dataDef: 'defdata' Nombre name ':' Type declaredType Equal DataLiteral values 'end'
+  ;
+
+syntax DataLiteral
+  = dataList: '[' DataItem (',' DataItem)* items ']'
+  ;
+
+syntax DataItem
+  = dataName: Nombre
+  | dataTyped: TypedValue
+  ;
+
+syntax TypedValue
+  = typedInt: IntLiteral value ':' Type declaredType
+  | typedFloat: FloatLiteral value ':' Type declaredType
+  | typedString: StringLiteral value ':' Type declaredType
+  | typedChar: CharLiteral value ':' Type declaredType
+  | typedBool: BoolLiteral value ':' Type declaredType
+  ;
+
+syntax Attribute
+  = attribute: '[' AttributeItem (',' AttributeItem)* items ']'
   ;
 
 syntax AttributeItem
-  = attrItem:
-    ID name (':' AttributeValue val)?
+  = attrPlain: Nombre name
+  | attrKeyVal: Nombre name ':' AttributeValue value
   ;
 
 syntax AttributeValue
-  = attrValId: ID
+  = attrName: Nombre
+  | attrInt: IntLiteral
+  | attrFloat: FloatLiteral
+  | attrBool: BoolLiteral
+  | attrEmpty: EmptySet
   ;
 
-// Variables
-syntax VarDecl
-  = varDecl:
-    'defvar' VarItem (',' VarItem)* items 'end' NL?
+syntax LogicalExpression
+  = logicalQuant: Quantifier
+  | logicalEquiv: EquivExpr
   ;
 
-syntax VarItem
-  = varItem:
-    ID name ':' ID domain
+syntax Quantifier
+  = forallExpr: 'forall' Nombre variable ('in' Nombre domain)? Dot LogicalExpression body
+  | existsExpr: 'exists' Nombre variable ('in' Nombre domain)? Dot LogicalExpression body
   ;
 
-// Rules: reescritura entre aplicaciones prefijas
-syntax RuleDecl
-  = ruleDecl:
-    'defrule' OperatorApp lhs '->' OperatorApp rhs 'end' NL?
+syntax EquivExpr
+  = equivSingle: ImplExpr
+  | equivChain: ImplExpr left Equiv EquivExpr right
   ;
 
-syntax OperatorApp
-  = opApp:
-    '(' ID op ArgList? args ')'
+syntax ImplExpr
+  = implSingle: OrExpr
+  | implChain: OrExpr left Implies ImplExpr right
   ;
 
-// Args: mejor que sean “átomos” (variables/literales/aplicaciones), no Expression completa
-syntax ArgList
-  = args:
-    Atom+ items
+syntax OrExpr
+  = orSingle: AndExpr
+  | orChain: AndExpr left 'or' OrExpr right
   ;
 
-syntax Atom
-  = atomId: ID
-  | atomInt: INT
-  | atomFloat: FLOAT
-  | atomChar: CHAR
-  | atomApp: OperatorApp
-  ;
-
-// Expressions
-syntax ExpressionDecl
-  = exprDecl:
-    'defexpression' Expression exp AttributeList? attrs 'end' NL?
-  ;
-
-// Precedencia (estilo tu gramática)
-syntax Expression = impl: ImplicationExpr;
-
-syntax ImplicationExpr
-  = implExpr:
-    EquivalenceExpr left ('=>' EquivalenceExpr)* rest
-  ;
-
-syntax EquivalenceExpr
-  = equivExpr:
-    LogicalOrExpr left ('≡' LogicalOrExpr)* rest
-  ;
-
-syntax LogicalOrExpr
-  = orExpr:
-    LogicalAndExpr left ('or' LogicalAndExpr)* rest
-  ;
-
-syntax LogicalAndExpr
-  = andExpr:
-    EqualityExpr left ('and' EqualityExpr)* rest
-  ;
-
-syntax EqualityExpr
-  = eqExpr:
-    RelationalExpr left (RelOp RelationalExpr)* rest
-  ;
-
-syntax RelationalExpr
-  = relExpr:
-    AdditiveExpr expr
-  ;
-
-syntax RelOp
-  = lt: '<' | gt: '>' | le: '<=' | ge: '>=' | ne: '<>' | inOp: 'in'
-  ;
-
-syntax AdditiveExpr
-  = addExpr:
-    MultiplicativeExpr left (('+'|'-') MultiplicativeExpr)* rest
-  ;
-
-syntax MultiplicativeExpr
-  = mulExpr:
-    UnaryExpr left (('*'|'/'|'%') UnaryExpr)* rest
+syntax AndExpr
+  = andSingle: UnaryExpr
+  | andChain: UnaryExpr left 'and' AndExpr right
   ;
 
 syntax UnaryExpr
-  = negExpr: ('neg'|'-') UnaryExpr
-  | primExpr: PrimaryExpr
+  = negExpr: 'neg' UnaryExpr expression
+  | unaryBase: BaseExpr
   ;
 
-// Importante: NO incluimos "∅" como expresión
-syntax PrimaryExpr
-  = quant: QuantifiedExpr
-  | app: OperatorApp
-  | id: ID
-  | intLit: INT
-  | floatLit: FLOAT
-  | charLit: CHAR
-  | par: '(' Expression ')'
+syntax BaseExpr
+  = baseParen: '(' LogicalExpression expression ')'
+  | baseRelation: Relation
+  | baseBoolAtom: BoolAtom
   ;
 
-syntax QuantifiedExpr
-  = quantExpr:
-    Quantifier q ID var 'in' ID domain '.' Expression body
+syntax BoolAtom
+  = boolName: Nombre
+  | boolLiteral: BoolLiteral
   ;
 
-syntax Quantifier = all: 'forall' | ex: 'exists';
+syntax Relation
+  = relIn: Term left 'in' Term right
+  | relLessEq: Term left LessEq Term right
+  | relGreaterEq: Term left GreaterEq Term right
+  | relNotEqual: Term left NotEqual Term right
+  | relLess: Term left Less Term right
+  | relGreater: Term left Greater Term right
+  | relEqual: Term left Equal Term right
+  ;
 
-// “Relaciones” usando defer como declaración explícita
-// (así existe un constructo de relación sin inventar keywords nuevas)
-syntax RelationDecl
-  = relDecl:
-    'defer' ID name ':' Type type 'end' NL?
+syntax Term
+  = termApp: Application
+  | termName: Nombre
+  | termTyped: TypedValue
+  | termInt: IntLiteral
+  | termFloat: FloatLiteral
+  | termString: StringLiteral
+  | termChar: CharLiteral
+  | termBool: BoolLiteral
+  ;
+
+syntax Nombre
+  = name: ID
+  ;
+
+lexical ID
+  = [a-zA-Z][a-zA-Z0-9\-]* !>> [a-zA-Z0-9\-]
+  \ Reserved
+  ;
+
+lexical IntLiteral = [0-9]+ !>> [0-9];
+lexical FloatLiteral = [0-9]+ "." [0-9]+ !>> [0-9];
+lexical StringLiteral = "\"" ![\"]* "\"";
+lexical CharLiteral = "\'" ![\'] "\'";
+lexical BoolLiteral = "true" | "false";
+
+lexical Less = "\u003C" !>> "\u003D" !>> "\u003E";
+lexical Greater = "\u003E" !>> "\u003D";
+lexical LessEq = "\u003C\u003D";
+lexical GreaterEq = "\u003E\u003D";
+lexical NotEqual = "\u003C\u003E";
+lexical Equal = "\u003D" !>> "\u003E";
+lexical Implies  = "\u003D\u003E";
+lexical Arrow = "\u002D\u003E";
+lexical Dot = "." !>> [0-9];
+lexical Equiv = "\u2261";
+lexical EmptySet = "\u2205";
+
+keyword Reserved
+  = 'defmodule'
+  | 'using'
+  | 'defspace'
+  | 'defoperator'
+  | 'defvar'
+  | 'defrule'
+  | 'defexpression'
+  | 'defequation'
+  | 'defdata'
+  | 'end'
+  | 'forall'
+  | 'exists'
+  | 'in'
+  | 'and'
+  | 'or'
+  | 'neg'
+  | 'defer'
+  | 'true'
+  | 'false'
   ;

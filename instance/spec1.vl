@@ -1,0 +1,13 @@
+defmodule SetExample
+using BaseTypes
+defspace Element end
+defspace Set end
+defoperator isIn : Element -> Set -> Bool end
+defoperator implication : Bool -> Bool -> Bool [associative] end
+defvar x : Element, y : Element, s : Set, p : Bool, q : Bool end
+defdata sampleElements : Element = [x, y] end
+defdata flags : Bool = [true:Bool, false:Bool] end
+defrule (implication p q) -> (implication q p) end
+defexpression forall x in Element . x in s end
+defequation p = q end
+end

@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.rascalmpl</groupId>
-  <artifactId>project2</artifactId>
+  <artifactId>js-otalorab12-project-verilang</artifactId>
   <version>0.1.0-SNAPSHOT</version>
 
   <properties>
@@ -30,6 +30,16 @@
       <groupId>org.rascalmpl</groupId>
       <artifactId>rascal</artifactId>
       <version>0.42.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.rascalmpl</groupId>
+      <artifactId>typepal</artifactId>
+      <version>0.15.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.rascalmpl</groupId>
+      <artifactId>rascal-lsp</artifactId>
+      <version>2.22.1</version>
     </dependency>
   </dependencies>
 
