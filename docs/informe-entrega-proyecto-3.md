@@ -63,7 +63,7 @@ Se usaron como guia los siguientes materiales:
 - `ple_project_3.pdf`: se uso como enunciado principal de esta entrega, especialmente para parser, generacion, TypePal, anotaciones de tipos y validacion de estructuras.
 - `rascal_tutorial.pdf`: se uso como referencia para el flujo de trabajo en Rascal: parser, generador, plugin y TypePal.
 - `Solucion_propuesta_PLE_proyecto_1_202610.pdf`: se uso como guia conceptual de la gramatica base de VeriLang: modulos, `using`, espacios, operadores curry, variables, reglas, expresiones, ecuaciones y atributos.
-- proyecto de referencia compartido por las companeras: se uso como guia de organizacion de modulos Rascal (`Syntax`, `AST`, `Parser`, `ToAST`, `Generator`, `TypeChecker`) y como punto de comparacion para pruebas.
+- proyecto de referencia compartido por las compañeras Isabella Salcedo Delgadillo y Valentina Rojas Forero: se uso como guia de organizacion de modulos Rascal (`Syntax`, `AST`, `Parser`, `ToAST`, `Generator`, `TypeChecker`) y como punto de comparacion para pruebas.
 - repositorios de ejemplo compartidos por el profesor: se revisaron para confirmar la organizacion de ejemplos y ejecucion, sin copiar funcionalidades ajenas al alcance de VeriLang.
 
 La solución entregada no es una copia directa de esas fuentes. Se realizaron ajustes propios en la gramática, el AST, el conversor a AST, el generador, las validaciones, los ejemplos y la documentación. En particular, se corrigieron nombres, rutas de proyecto, extensión `.vl`, manejo de estructuras `defdata`, valores anotados y reglas de validación.
