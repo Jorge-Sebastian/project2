@@ -1,13 +1,5 @@
 module Syntax
 
-import IO;
-import ParseTree;
-import util::Reflective;
-import util::IDEServices;
-import util::LanguageServer;
-import Relation;
-
-
 // Layout: NO consumimos '\n' para poder exigir fin de línea cuando toca (using)
 layout Layout = (WS | Comment)* !>> [\ \t\r#];
 lexical WS = [\ \t\r]+;
